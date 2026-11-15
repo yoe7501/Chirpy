@@ -16,6 +16,7 @@ type apiConfig struct {
 	fileserverHits atomic.Int32
 	db             *database.Queries
 	platform       string
+	jwtSecret      string
 }
 
 func main() {
@@ -24,6 +25,7 @@ func main() {
 
 	godotenv.Load()
 	dbURL := os.Getenv("DB_URL")
+	JWT_SECRET := os.Getenv("JWT_SECRET")
 	if dbURL == "" {
 		log.Fatal("DB_URL must be set")
 	}
@@ -42,6 +44,7 @@ func main() {
 		fileserverHits: atomic.Int32{},
 		db:             dbQueries,
 		platform:       platform,
+		jwtSecret:      JWT_SECRET,
 	}
 
 	mux := http.NewServeMux()
@@ -61,6 +64,8 @@ func main() {
 	mux.HandleFunc("GET /api/chirps/{id}", apiCfg.handlerGetChirp)
 
 	mux.HandleFunc("POST /api/login", apiCfg.handlerLogin)
+	mux.HandleFunc("POST /api/refresh", apiCfg.handlerRefresh)
+	mux.HandleFunc("POST /api/revoke", apiCfg.handlerRevoke)
 
 	srv := &http.Server{
 		Addr:    ":" + port,
