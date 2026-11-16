@@ -17,6 +17,7 @@ type apiConfig struct {
 	db             *database.Queries
 	platform       string
 	jwtSecret      string
+	polkaKey       string
 }
 
 func main() {
@@ -26,6 +27,7 @@ func main() {
 	godotenv.Load()
 	dbURL := os.Getenv("DB_URL")
 	JWT_SECRET := os.Getenv("JWT_SECRET")
+	POLKA_KEY := os.Getenv("POLKA_KEY")
 	if dbURL == "" {
 		log.Fatal("DB_URL must be set")
 	}
@@ -45,6 +47,7 @@ func main() {
 		db:             dbQueries,
 		platform:       platform,
 		jwtSecret:      JWT_SECRET,
+		polkaKey:       POLKA_KEY,
 	}
 
 	mux := http.NewServeMux()
@@ -68,6 +71,7 @@ func main() {
 	mux.HandleFunc("POST /api/revoke", apiCfg.handlerRevoke)
 	mux.HandleFunc("PUT /api/users", apiCfg.updateCred)
 	mux.HandleFunc("DELETE /api/chirps/{chirpID}", apiCfg.handlerDeleteChirp)
+	mux.HandleFunc("POST /api/polka/webhooks", apiCfg.handlerUpgradeUser)
 	srv := &http.Server{
 		Addr:    ":" + port,
 		Handler: mux,
